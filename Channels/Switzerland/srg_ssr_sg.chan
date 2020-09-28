@@ -1,0 +1,18 @@
+#https://www.broadcast.ch/fileadmin/kundendaten/Dokumente/Internet_Streaming/2020_06_links_for_streaming_internet_radio_de_fr_it_V006.pdf.pdf
+radio swiss pop;http://stream.srg-ssr.ch/rsp/aacp_96.m3u
+rsj;            http://stream.srg-ssr.ch/rsj/aacp_96.m3u
+rsc_de;         http://stream.srg-ssr.ch/rsc_de/aacp_96.m3u
+aacp_96;        http://stream.srg-ssr.ch/rr/aacp_96.m3u
+drs virus;      http://stream.srg-ssr.ch/drsvirus/aacp_96.m3u
+drs musik welle;http://stream.srg-ssr.ch/drsmw/aacp_96.m3u
+drs4news;       http://stream.srg-ssr.ch/drs4news/aacp_96.m3u
+drs3;           http://stream.srg-ssr.ch/drs3/aacp_96.m3u
+drs2;           http://stream.srg-ssr.ch/drs2/aacp_96.m3u
+regi_zh_sh;     http://stream.srg-ssr.ch/regi_zh_sh/aacp_96.m3u
+regi_zentr;     http://stream.srg-ssr.ch/regi_zentr/aacp_96.m3u
+regi_gr;        http://stream.srg-ssr.ch/regi_gr/aacp_96.m3u
+regi_ost;       http://stream.srg-ssr.ch/regi_ost/aacp_96.m3u
+regi_be_fr_vs;  http://stream.srg-ssr.ch/regi_be_fr_vs/aacp_96.m3u
+regi_bs_bl;     http://stream.srg-ssr.ch/regi_bs_bl/aacp_96.m3u
+regi_ag_so;     http://stream.srg-ssr.ch/regi_ag_so/aacp_96.m3u
+drs1;           http://stream.srg-ssr.ch/drs1/aacp_96.m3u

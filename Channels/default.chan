@@ -1,0 +1,4 @@
+#default streams loaded on factory reset
+radio swiss pop;http://stream.srg-ssr.ch/rsp/aacp_96.m3u
+energy bern;   http://energybern.ice.infomaniak.ch/energybern-high.mp3
+

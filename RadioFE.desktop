@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=RadioFE
+Comment=Internet Radio
+Exec=RadioFE
+Icon=RadioFE
+Terminal=false
+Type=Application
+Categories=AudioVideo;Player;Audio;
+StartupNotify=true
