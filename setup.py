@@ -2,14 +2,14 @@
 
 ## 
 # @package setup.py 
-# setup.py for distutils of gencfs
+# setup.py for distutils of RadioFE
 # Copyright 2020 linurs.org 
 # Distributed under the terms of the GNU General Public License v2
 
 from distutils.core import setup
 setup(
       name="RadioFE",
-      scripts=["RadioFE.py", "Channel.py", "Channels.py"],
+      py_modules=["RadioFE", "Channel", "Channels"],
       version="0.0",
       description='Internet Radio Front End for mplayer',
       author='Urs Lindegger',
