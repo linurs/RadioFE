@@ -35,8 +35,8 @@ import sys
 import threading
 import webbrowser
 
-from Channel import *
-from Channels import *
+from radiofe.Channel import *
+from radiofe.Channels import *
    
 from tkinter import *   
 from tkinter import messagebox   
