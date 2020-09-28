@@ -9,7 +9,8 @@
 from distutils.core import setup
 setup(
       name="RadioFE",
-      py_modules=["RadioFE", "Channel", "Channels"],
+      scripts=["RadioFE.py"],
+      packages=["radiofe"],
       version="0.0",
       description='Internet Radio Front End for mplayer',
       author='Urs Lindegger',
