@@ -53,6 +53,7 @@ faviconname=   'favicon.gif'
 defaultpicname='default.png'
 
 str_alt_decode="alt_decode"  
+
 str_mplayer_cmd="mplayer_cmd"  
 str_volume="volume"  
 str_favorite="favorite"
@@ -481,6 +482,7 @@ class app_t():
         if(self.favorits_active==False):
                 self.channel=self.channels.up()
         else:        
+
                     self.channel=self.favorites.up()
         logging.debug("ch+ to "+self.channel.get_name())
         self.radio_station_name=self.channel.get_name()
@@ -614,7 +616,8 @@ if __name__ == "__main__":
     defaultpic=bundle_dir+os.sep+defaultpicname
     if (os. path. isfile(favicon)==False):
         logging.debug(favicon+' not found' )
-        favicon="/usr/share/radio/"+faviconname
+        favicon="/usr/share/RadioFE/"+faviconname
+        defaultpic="/usr/share/RadioFE/"+defaultpicname
         logging.debug('so try to find it at '+favicon )
         if (os. path. isfile(favicon)==False):
              logging.error(faviconname+' not found')
