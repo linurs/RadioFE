@@ -1,4 +1,4 @@
-from Channel import *
+from radiofe.Channel import *
 from tkinter import messagebox   
 
 class channels_t():
