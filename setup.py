@@ -2,7 +2,7 @@
 
 ## 
 # @package setup.py 
-# setup.py for distutils of gencfs
+# setup.py for distutils of RadioFE
 # Copyright 2020 linurs.org 
 # Distributed under the terms of the GNU General Public License v2
 
