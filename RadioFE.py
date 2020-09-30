@@ -4,26 +4,25 @@
 # @author urs lindegger urs@linurs.org  
 
 ## @todo  
-# - add mplayer command line into config 
+# - publish on linus tar.gz
+# - keep aspect ratio of pop up
 # - check for mplayer installed not static do it on config file and exit when nothing is 
-# - factory reset also delete favorites, why not just complete dir?
 # - browser and pop up update do not work the same: pop up update opens window, browser update not, what is better?
-# - other front end than mplayer
+# - other back end than mplayer
 # - bad crash if stream is not valid
 # - up/down edit for favorites
-# - channel up and down add multiple tabs with the same icy picture in browser
+# - channel up and down avoid adding multiple tabs with the same icy picture in browser
 # - character encoding in the console what is it?
 # - nicer gui and tkinter alternatives qt, gtk
-# - ebuild installer and where to put files
-# - git hub
-# - make more clever if else Truefalse handling in read and write file use a funtion
+# - store window sizes and positions
+# - do not crash if PIL is notinstalled dev-python/pillow on embedded device without graphical display PIL is not required
+# - make more clever if else True false handling in read and write file use a funtion
 # - handle pop out window close better remove stuff in memory when close and reopen it clean
 # - avoid using self almost everywhere
-# - raspi, ui and network, clock, alarm, mono instead stereo use web server and not fancy ui to do settings, bluetooth source select (test with parallel port PC, print case for it, elecx)
+# - embedded project, ui and network, clock, alarm, mono instead stereo, use web server and not fancy ui to do settings, bluetooth source select (test with parallel port PC, print case for it, elecx)
 
 ## @mainpage gencfs
-# radio RTTM is a simple Reduced To The Minimum internet radio.
-# it is intended to listen and not to watch radio, so its gui is reduced to the minimum
+# RadioFE is a Internet Radio frontend for mplayer.
 
 import os
 import subprocess
@@ -42,7 +41,12 @@ from tkinter import *
 from tkinter import messagebox   
 from tkinter import filedialog   
 
-from PIL import ImageTk, Image
+try:
+   from PIL import ImageTk, Image
+   PIL_imported=True 
+except:
+   PIL_Imported=False
+   
 from urllib.request import urlopen
 
 ## Version of radio
@@ -50,6 +54,7 @@ radioversion="0.0"
 
 ## favicon file to seen in window decoration
 faviconname=   'favicon.gif'
+share="/usr/share/RadioFE/"
 defaultpicname='default.png'
 
 str_alt_decode="alt_decode"  
@@ -66,7 +71,6 @@ str_console="console"
 
 buttonwidth=15
 pic_size=100
-poppic_size=450
 
 class app_t():
 ##
@@ -89,17 +93,19 @@ class app_t():
         self.popout_window_created=False
         self.show_icy_picture_browser=False
         self.show_icy_picture_browser_update=False
+        self.poppic_x=450
+        self.poppic_y=450
         
         userpath=os.path.expanduser("~")           # check what user
-        configdir=userpath+"/.RadioFE"
-        if os.access(configdir, os.F_OK)==False:  # check if user has a directory containing persistent data
-          os.mkdir(configdir)                                    # if not create the directory
+        self.configdir=userpath+"/.RadioFE"
+        if os.access(self.configdir, os.F_OK)==False:  # check if user has a directory containing persistent data
+          os.mkdir(self.configdir)                                    # if not create the directory
         configfile="conf"
         favoritesfile="favorites.chan"
         defaultchanfile="default.chan"     
-        self.pathtoconfig=configdir+"/"+configfile
-        self.pathtofavorites=configdir+"/"+favoritesfile
-        self.pathtodefaultchanfile=bundle_dir+"/Channels/"+defaultchanfile
+        self.pathtoconfig=self.configdir+"/"+configfile
+        self.pathtofavorites=self.configdir+"/"+favoritesfile
+        self.pathtodefaultchanfile=share_dir+"/Channels/"+defaultchanfile
         logging.debug("Config file "+self.pathtoconfig)
         self.alt_decode='iso8859_2'
         self.mplayer_cmd="mplayer -slave -quiet -prefer-ipv4"
@@ -144,8 +150,7 @@ class app_t():
                            self.show_console=True
                         else:
                            self.show_console=False     
-   
-       # new way favorites are separate file                    
+                    
         if os.access(self.pathtofavorites, os.F_OK)==True:   # check if file exists containing persistent data                 
            self.channel=self.favorites.read(self.pathtofavorites)             
         else:       
@@ -250,17 +255,22 @@ class app_t():
              self.popout_window_created=False
              self.top.destroy()
         
-    def popout(self):
+    def popconfigure(self, event):
+        logging.debug("pop config event. Height "+str(event.height)+" Width"+str(event.width))
+        self.poppic_x=event.width-2
+        self.poppic_y=event.height-2
+        self.popout(self.poppic_x, self.poppic_y)
+              
+    def popout(self, x, y):
         if(self.show_default_picture==False):
-            img =Image.open(urlopen(self.icy_url))
-            newsize = (poppic_size, poppic_size) 
-            img=img.resize(newsize)
+            newsize = (x, y) 
+            img=self.img.resize(newsize)
             self.picture = ImageTk.PhotoImage(img)           
             self.show_icy_picture_pop=True
    
             if(self.popout_window_created==False):
               self.top = Toplevel()
-              self.top.resizable(width=FALSE, height=FALSE)
+              self.top.bind("<Configure>", self.popconfigure)
               self.top.protocol("WM_DELETE_WINDOW", self.popevent) 
               self.top.title("RadioFE picture") 
               self.top.picturearea=Label(self.top,  image=self.picture)
@@ -281,7 +291,7 @@ class app_t():
            self.show_icy_picture_browser=True
         
     def get_channel_list(self):
-        filename = filedialog.askopenfilename(initialdir=bundle_dir+"/Channels",title = "Select file",filetypes = (("Channel files","*.chan"),("All files","*.*")))  
+        filename = filedialog.askopenfilename(initialdir=share_dir+"/Channels",title = "Select file",filetypes = (("Channel files","*.chan"),("All files","*.*")))  
         
         if os.access(filename, os.F_OK)==True:
             self.channels.clear()
@@ -433,9 +443,10 @@ class app_t():
                      if(data[0]=="StreamUrl"):
                         self.icy_url=element[11:len(element)].strip("\n")
                         logging.debug("Stream url :"+self.icy_url)
-                        self.update_url_picture(self.icy_url)
+                        self.img =Image.open(urlopen(self.icy_url))
+                        self.update_url_picture()
                         if(self.show_icy_picture_pop_update==True):
-                          self.popout()
+                          self.popout( self.poppic_x,  self.poppic_y)
                         if(self.show_icy_picture_browser_update==True)and(self.show_icy_picture_browser==True):
                           self.icy_browser()   
         logger.info('radio info thread terminated')    
@@ -461,10 +472,9 @@ class app_t():
            self.radio_mute=True   
         self.update_gui()   
         
-    def update_url_picture(self, url):    
-        img =Image.open(urlopen(url))
+    def update_url_picture(self):    
         newsize = (pic_size, pic_size) 
-        img=img.resize(newsize)
+        img=self.img.resize(newsize)
         self.window.picture = ImageTk.PhotoImage(img)
         self.window.picturearea.configure(image=self.window.picture)
         self.show_default_picture=False
@@ -538,14 +548,17 @@ class app_t():
         logging.debug(self.pathtofavorites+" saved") 
      
     def factory_reset(self):
-        r=messagebox.askyesno("Factory Reset","Factory reset deletes "+self.pathtoconfig+"\nContinue?")   
-        if(os.path.exists(self.pathtoconfig)and(r==True)):
-           os.remove(self.pathtoconfig)
+        r=messagebox.askyesno("Factory Reset","Factory reset deletes "+self.configdir+"\nContinue?")   
+        if(os.path.exists(self.configdir)and(r==True)):
+           try:
+             shutil.rmtree(self.configdir) 
+           except OSError as e:
+             logging.error("%s : %s" % (self.configdir, e.strerror))  
            s=messagebox.askyesno("Factory Reset","Factory reset done. Exit now?")   
            if s==True:
                self.exit()
         else:
-           messagebox.showinfo("Factory Reset",self.pathtoconfig+" does not exist")       
+           messagebox.showinfo("Factory Reset",self.configdir+" does not exist")       
         
     def update_gui(self):
         if(self.radio_mute==True):    
@@ -597,8 +610,13 @@ if __name__ == "__main__":
     if shutil.which("mplayer")==None:
          logger.error('mplayer not found')
          exit()
+         
+    if PIL_imported:
+         logging.debug('PIL imported')
+    else:     
+         logging.info('Python Imaging Library not found, install pillow ')
         
-    ## pyinstaller stuff required to create bundled versions:      
+    ## pyinstaller stuff to find out from where it runs:      
     frozen = 'not '
     if getattr(sys, 'frozen', False): # pyinstaller adds the name frozen to sys 
             frozen = ''  # we are running in a bundle (frozen)
@@ -612,17 +630,18 @@ if __name__ == "__main__":
     logging.debug('sys.executable is '+sys.executable )
     logging.debug('os.getcwd is '+os.getcwd() )
     ## makes that the files are found
-    favicon=bundle_dir+os.sep+faviconname
-    defaultpic=bundle_dir+os.sep+defaultpicname
+    share_dir=bundle_dir
+    favicon=share_dir+os.sep+faviconname
     if (os. path. isfile(favicon)==False):
-        logging.debug(favicon+' not found' )
-        favicon="/usr/share/RadioFE/"+faviconname
-        defaultpic="/usr/share/RadioFE/"+defaultpicname
-        logging.debug('so try to find it at '+favicon )
-        if (os. path. isfile(favicon)==False):
+        share_dir=share
+        logging.debug(favicon+' not found, so try to find it at '+share_dir )
+    favicon=share_dir+os.sep+faviconname
+    defaultpic=share_dir+os.sep+defaultpicname
+    if (os. path. isfile(favicon)==False):
              logging.error(faviconname+' not found')
              exit()
-        
+    logging.debug('Share dir is '+share_dir )   
+     
 ## start the application    
     app=app_t()
     app.run()
