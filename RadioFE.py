@@ -1,11 +1,28 @@
 #!/usr/bin/python3
+"""! @brief RadioFE is a Internet Radio frontend for mplayer."""
+##
+# @mainpage RadioFE
+# @section description_main Description
+# A Radio front End for mplayer 
+#
 
-## @package gencfs 
-# @author urs lindegger urs@linurs.org  
-
-## @todo  
-# - publish on linus tar.gz
+##
+# @file RadioFE.py
+#
+# @brief Main file of RadioFE
+#
+# @section author_doxygen_example Author(s)
+# - Created by Urs Lindegger on 2020-10-01
+#
+# Copyright (c) 2020 www.linurs.org.  All rights reserved. 
+#
+# @todo  
+# - def hello_name(name: str) -> str:
+# - speed up pop up window re-size write in queue and then jst resize the last
 # - keep aspect ratio of pop up
+# - separate radio from tkinter
+# - publish on linus tar.gz
+# - link to githb und linurs
 # - check for mplayer installed not static do it on config file and exit when nothing is 
 # - browser and pop up update do not work the same: pop up update opens window, browser update not, what is better?
 # - other back end than mplayer
@@ -20,9 +37,7 @@
 # - handle pop out window close better remove stuff in memory when close and reopen it clean
 # - avoid using self almost everywhere
 # - embedded project, ui and network, clock, alarm, mono instead stereo, use web server and not fancy ui to do settings, bluetooth source select (test with parallel port PC, print case for it, elecx)
-
-## @mainpage gencfs
-# RadioFE is a Internet Radio frontend for mplayer.
+#
 
 import os
 import subprocess
@@ -43,46 +58,67 @@ from tkinter import filedialog
 
 try:
    from PIL import ImageTk, Image
-   PIL_imported=True 
+   PIL_imported=True  # Indication that PIL the python imageing library (pillow) is imported 
 except:
-   PIL_Imported=False
-   
+   PIL_Imported=False 
+
 from urllib.request import urlopen
 
-## Version of radio
+#Version of the program
 radioversion="0.0"
 
-## favicon file to seen in window decoration
+#favicon file to seen in window decoration
 faviconname=   'favicon.gif'
+
+#directory where the shared files as channel lists and pictures go
 share="/usr/share/RadioFE/"
+
+#name of the default picture
 defaultpicname='default.png'
 
+#string used in config file for character decoding
 str_alt_decode="alt_decode"  
 
+#string used in config file for the mplayer commend
 str_mplayer_cmd="mplayer_cmd"  
+
+#string used in config file for volume setting
 str_volume="volume"  
+
+#string used in config file for favorite
 str_favorite="favorite"
+
+#string used in config file for favorite index
 str_favorites_index="favorite_index"
+
+#string used in config file for icy picture setting
 str_icy_picture="icy_picture"
-str_icy_picture_pop_update="icy_picture_pop_update"
+
+#string used in config file for icy picture pop up update setting
+str_icy_picture_pop_update="icy picture_pop_update"
+
+#string used in config file for icy picture browser update setting
 str_icy_picture_browser_update="icy_picture_browser_update"
 
+#string used in config file for show console setting
 str_console="console"
 
+#width of the buttons in the radio window
 buttonwidth=15
+
+#size of the picture in the radio window
 pic_size=100
 
 class app_t():
-##
-     
-# The constructor for the GUI application   
+
     def __init__(self):
+        """The constructor for the GUI application"""   
         
         self.channel=channel_t() 
         self.channels=channels_t()
         self.favorites=channels_t()
-        
-        self.radio_on=False # status off the radio
+        # status off the radio
+        self.radio_on=False 
         self.radio_mute=False # mute status off the radio
         self.favorits_active=True # decides if Ch+ and Ch- buttons work on favorites or channels
         self.show_icy_picture=True
@@ -157,7 +193,7 @@ class app_t():
            self.channel=self.favorites.read(self.pathtodefaultchanfile)
         logging.debug("ch to "+self.channel.get_name())
         
-        ## setup the gui stuff
+        # setup the gui stuff
         self.window=Tk()
         self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.window.title('RadioFE')
@@ -167,7 +203,7 @@ class app_t():
         self.window.call("wm", "iconphoto", self.window, "-default", img)
         self.window.resizable(width=FALSE, height=FALSE)
         
-        ## create the menus   
+        # create the menus   
         self.menubar = Menu(self.window)
         
         filemenu = Menu(self.menubar, tearoff=0)
@@ -189,7 +225,7 @@ class app_t():
         self.icy_picture_gui.set(self.show_icy_picture)
         
         viewmenu.add_separator()
-        viewmenu.add_command(label="ICY Picture pop out", command=self.popout)
+        viewmenu.add_command(label="ICY Picture pop out", command=self.popoute)
         
         self.popout_update_gui=BooleanVar()
         viewmenu.add_checkbutton(label="ICY Picture update pop out", variable=self.popout_update_gui, command=self.icy_picture_update)
@@ -251,17 +287,23 @@ class app_t():
         self.text.grid(columnspan=4,  sticky= W)
      
     def popevent(self):
-             logging.debug("pop event")
-             self.popout_window_created=False
-             self.top.destroy()
+        """Destroy the pop up window"""
+        logging.debug("pop event")
+        self.popout_window_created=False
+        self.top.destroy()
         
     def popconfigure(self, event):
+        """Size op pop up window has changed"""
         logging.debug("pop config event. Height "+str(event.height)+" Width"+str(event.width))
         self.poppic_x=event.width-2
         self.poppic_y=event.height-2
         self.popout(self.poppic_x, self.poppic_y)
-              
+        
+    def popoute(self):
+         self.popout(self.poppic_x, self.poppic_y)
+         
     def popout(self, x, y):
+        """Create or update pop up window"""
         if(self.show_default_picture==False):
             newsize = (x, y) 
             img=self.img.resize(newsize)
@@ -280,17 +322,20 @@ class app_t():
                 self.top.picturearea.configure(image=self.picture)            
     
     def icy_browser_update(self):
+        """Set browser update flag"""
         if(self.browser_update_gui.get()==True):
              self.show_icy_picture_browser_update=True
         else:  
              self.show_icy_picture_browser_update=False   
     
     def icy_browser(self):
-         if(self.show_default_picture==False):
+        """Open browser with icy picture"""
+        if(self.show_default_picture==False):
            webbrowser.open_new_tab(self.icy_url)
            self.show_icy_picture_browser=True
         
     def get_channel_list(self):
+        """Get chanell list"""
         filename = filedialog.askopenfilename(initialdir=share_dir+"/Channels",title = "Select file",filetypes = (("Channel files","*.chan"),("All files","*.*")))  
         
         if os.access(filename, os.F_OK)==True:
@@ -304,33 +349,39 @@ class app_t():
             self.update_gui()
                 
     def play_favorites(self):
-         self.favorits_active=True
-         self.channel=self.favorites.get()
-         self.title=""
-         self.radio_station_name=self.channel.get_name()
-         self.update_gui()
-         self.play()
+        """Play favorites"""
+        self.favorits_active=True
+        self.channel=self.favorites.get()
+        self.title=""
+        self.radio_station_name=self.channel.get_name()
+        self.update_gui()
+        self.play()
         
     def remove_favorites(self):
-         if(self.favorits_active==True):
+        """Remove favorites"""
+        if(self.favorits_active==True):
              self.channel=self.favorites.remove()
              self.play_favorites()     
-         else:        
+        else:        
              messagebox.showerror("Error","Does not play favorites now")       
         
-    def add_favorites(self):    
+    def add_favorites(self):
+        """add favorites"""    
         if(self.favorits_active==True):
              messagebox.showinfo("Favorite","Channel is already in the favorite channel list")       
         else:   
              self.favorites.append(self.channel)
 
     def on_closing(self):
+       """exit""" 
        self.exit()
         
     def set_volume(self):
+        """Set volume"""
         self.volume_change(self.volume)
         
     def volume_change(self, v):
+        """Volume has changed in gui so set it"""
         self.volume=v 
         x="volume "+self.volume+" 1\n"
         xb=x.encode('utf-8')
@@ -339,51 +390,57 @@ class app_t():
         self.radio_popen.stdin.flush()
       
     def console(self):
-     if(self.console_gui.get()==False):   
-         self.text.grid_remove()
-         self.show_console=False
-     else:    
-         self.text.grid()
-         self.show_console=True
+         """Show and hide console"""        
+         if(self.console_gui.get()==False):   
+             self.text.grid_remove()
+             self.show_console=False
+         else:    
+             self.text.grid()
+             self.show_console=True
     
     def icy_picture(self):
-     if(self.icy_picture_gui.get()==False):
-         self.window.picturearea.grid_remove()
-         self.show_icy_picture=False
-     else:    
-         self.window.picturearea.grid()
-         self.show_icy_picture=True
+         """Show and hide icy picture"""
+         if(self.icy_picture_gui.get()==False):
+             self.window.picturearea.grid_remove()
+             self.show_icy_picture=False
+         else:    
+             self.window.picturearea.grid()
+             self.show_icy_picture=True
       
     def icy_picture_update(self):
-     if(self.popout_update_gui.get()==False):
-         self.show_icy_picture_pop_update=False
-     else:    
-         self.show_icy_picture_pop_update=True
+         """Update icy picture"""
+         if(self.popout_update_gui.get()==False):
+             self.show_icy_picture_pop_update=False
+         else:    
+             self.show_icy_picture_pop_update=True
         
-##
-# runs the gui
     def run(self):
+        """run"""
         self.play()
         self.set_volume()
         self.window.mainloop()        
-##
-# Quits the application
+
     def exit(self):
+         """exit"""
          self.off()
          self.window.destroy()
 
-##
-# Shows abbout messagebox
     def about(self):
+         """Shows abbout messagebox"""
          messagebox.showinfo("About","Internet Radio Front End from https://www.linurs.org \nVersion "+radioversion)       
 
     def play(self):
+        """Play the selected radio station"""
         self.on(self.channel.get_url())
+        ## name of the radio station
         self.radio_station_name=self.channel.get_name()
+        ## song title
         self.title=""
         self.update_gui()
-        
+
+
     def on(self, url):
+         """Turn the radio on"""
          if self.radio_on==True:
              self.off()
          self.radio_on=True
@@ -411,8 +468,10 @@ class app_t():
              self.radio_info_thread = threading.Thread(target=self.radio_info_thread_function, args=())
              self.radio_info_thread.start()
              logging.debug(str(threading.active_count())+' threads are running') 
-            
+
+
     def radio_info_thread_function(self):      
+        """thread reading radio infor mation from mplayer as title and picture"""
         logger.info('radio info thread started')    
         while(self.radio_on==True):
             a=self.radio_popen.stdout.readline();
@@ -451,7 +510,9 @@ class app_t():
                           self.icy_browser()   
         logger.info('radio info thread terminated')    
      
+
     def off(self):
+        """Turn the radio off"""
         if(self.radio_on==True):
             self.radio_popen.stdin.write(b'quit\n')
             self.radio_popen.stdin.flush()
@@ -464,6 +525,7 @@ class app_t():
             self.update_gui()
 
     def mute(self):
+        """Mute the radio"""
         self.radio_popen.stdin.write(b'mute\n')    
         self.radio_popen.stdin.flush()
         if(self.radio_mute==True):
@@ -472,14 +534,17 @@ class app_t():
            self.radio_mute=True   
         self.update_gui()   
         
+
     def update_url_picture(self):    
+        """Update the picture in the radio window"""
         newsize = (pic_size, pic_size) 
         img=self.img.resize(newsize)
         self.window.picture = ImageTk.PhotoImage(img)
         self.window.picturearea.configure(image=self.window.picture)
         self.show_default_picture=False
-     
+
     def default_picture(self):   
+        """Put the default picture into the radio window"""
         img =Image.open(defaultpic)
         newsize = (pic_size, pic_size) 
         img=img.resize(newsize)
@@ -488,6 +553,7 @@ class app_t():
         self.show_default_picture=True
 
     def chup(self):
+        """Channel up button pressed"""
         self.off()
         if(self.favorits_active==False):
                 self.channel=self.channels.up()
@@ -501,7 +567,9 @@ class app_t():
         self.default_picture()
         self.update_gui()        
     
+ 
     def chdown(self):
+        """Channel down button pressed"""   
         self.off()
         if(self.favorits_active==False):
                 self.channel=self.channels.down()
@@ -513,8 +581,9 @@ class app_t():
         self.title=""
         self.default_picture()
         self.update_gui()             
-      
+
     def save(self):
+        """Save the radio settings to the files"""     
         pathtoconfigfile=open(self.pathtoconfig,  'w')     # now save the config
         pathtoconfigfile.write("#radio configuration\n")  
         pathtoconfigfile.write("version="+radioversion+"\n")  
@@ -546,8 +615,10 @@ class app_t():
         logging.debug(self.pathtoconfig+" saved")  
         self.favorites.write(self.pathtofavorites)    
         logging.debug(self.pathtofavorites+" saved") 
-     
+
+ 
     def factory_reset(self):
+        """Delete the setting files"""
         r=messagebox.askyesno("Factory Reset","Factory reset deletes "+self.configdir+"\nContinue?")   
         if(os.path.exists(self.configdir)and(r==True)):
            try:
@@ -559,8 +630,9 @@ class app_t():
                self.exit()
         else:
            messagebox.showinfo("Factory Reset",self.configdir+" does not exist")       
-        
+      
     def update_gui(self):
+        """update widges in the radio window"""  
         if(self.radio_mute==True):    
                 self.window.mutebutton.config(relief=SUNKEN)
         else:        
@@ -616,26 +688,20 @@ if __name__ == "__main__":
     else:     
          logging.info('Python Imaging Library not found, install pillow ')
         
-    ## pyinstaller stuff to find out from where it runs:      
-    frozen = 'not '
-    if getattr(sys, 'frozen', False): # pyinstaller adds the name frozen to sys 
-            frozen = ''  # we are running in a bundle (frozen)
-            ## temporary folder of pyinstaller
-            bundle_dir = sys._MEIPASS  
-    else:
-            bundle_dir = os.path.dirname(os.path.abspath(__file__))   # we are running in a normal Python environment 
-    logging.debug('Script is '+frozen+'frozen')
+    bundle_dir = os.path.dirname(os.path.abspath(__file__))   # get the Python environment 
     logging.debug('Bundle dir is '+bundle_dir )
     logging.debug('sys.argv[0] is '+sys.argv[0] )
     logging.debug('sys.executable is '+sys.executable )
     logging.debug('os.getcwd is '+os.getcwd() )
     ## makes that the files are found
     share_dir=bundle_dir
+    ## path to favicon picture
     favicon=share_dir+os.sep+faviconname
     if (os. path. isfile(favicon)==False):
         share_dir=share
         logging.debug(favicon+' not found, so try to find it at '+share_dir )
     favicon=share_dir+os.sep+faviconname
+    ## path to default
     defaultpic=share_dir+os.sep+defaultpicname
     if (os. path. isfile(favicon)==False):
              logging.error(faviconname+' not found')
