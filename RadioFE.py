@@ -18,7 +18,6 @@
 #
 # @todo  
 # - def hello_name(name: str) -> str:
-# - speed up pop up window re-size write in queue and then jst resize the last
 # - keep aspect ratio of pop up
 # - separate radio from tkinter
 # - publish on linus tar.gz
