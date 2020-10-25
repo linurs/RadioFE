@@ -1,6 +1,7 @@
 import subprocess
 import shlex
 import logging
+import queue
 
 import threading
 import webbrowser
@@ -33,6 +34,7 @@ class tkradio(radio):
 
         self.poppic_x=450
         self.poppic_y=450
+        self.queue = queue.Queue()
         
         # setup the gui stuff
         self.window=Tk()
@@ -133,12 +135,37 @@ class tkradio(radio):
         self.popout_window_created=False
         self.top.destroy()
         
+    def sampler(self):    
+          logging.debug("sampler called")
+   #       self.popout(self.poppic_x, self.poppic_y) # to be replaced by pipe and just do the last pipe entry
+          if self.queue.qsize():
+              logging.debug("queue has data")
+              while self.queue.empty()==False:
+                  try:
+                    size = self.queue.get()
+                    logging.debug(size)
+                    self.queue.task_done()
+                  except queue.Empty:
+                    pass
+              self.popout(size[0], size[1])      
+              logging.debug("resize picture")
+          else:    
+              logging.debug("queue has no data")
+        
     def popconfigure(self, event):
         """Size op pop up window has changed"""
-        logging.debug("pop config event. Height "+str(event.height)+" Width"+str(event.width))
-        self.poppic_x=event.width-2
-        self.poppic_y=event.height-2
-        self.popout(self.poppic_x, self.poppic_y)
+        if(self.poppic_x!=event.width-2)or(self.poppic_y!=event.height-2):
+            logging.debug("pop config event. Height "+str(event.height)+" Width "+str(event.width))
+            self.poppic_x=event.width-2
+            self.poppic_y=event.height-2
+            logging.debug("new size. Height "+str(self.poppic_y)+" Width "+str(self.poppic_x))
+            self.queue.put((self.poppic_x, self.poppic_y))  
+            
+      #      self.popout(self.poppic_x, self.poppic_y)
+            self.window.after(250, self.sampler)
+        else:
+            logging.debug("pop config event without size change")
+     
         
     def popoute(self):
          self.popout(self.poppic_x, self.poppic_y)
@@ -153,11 +180,11 @@ class tkradio(radio):
    
             if(self.popout_window_created==False):
               self.top = Toplevel()
-              self.top.bind("<Configure>", self.popconfigure)
               self.top.protocol("WM_DELETE_WINDOW", self.popevent) 
               self.top.title("RadioFE picture") 
               self.top.picturearea=Label(self.top,  image=self.picture)
               self.top.picturearea.grid()
+              self.top.bind("<Configure>", self.popconfigure)
               self.popout_window_created=True
             else:   
                 self.top.picturearea.configure(image=self.picture)            
