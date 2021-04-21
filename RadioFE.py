@@ -12,12 +12,14 @@
 # @brief Main file of RadioFE
 #
 # @section author_doxygen_example Author(s)
-# - Created by Urs Lindegger on 2020-10-01
+# - Created by Urs Lindegger on 2020-10-25
 #
 # Copyright (c) 2020 www.linurs.org.  All rights reserved. 
 #
 # @todo  
 # - def hello_name(name: str) -> str:
+# - radio pilatus https://radiopilatus.ice.infomaniak.ch/pilatus128.mp3
+# - site of swiss radios https://swissfmradios.ch/radio-24-live-horen/
 # - keep aspect ratio of pop up
 # - separate radio from tkinter
 # - publish on linus tar.gz
@@ -37,9 +39,14 @@
 # - make more clever if else True false handling in read and write file use a funtion
 # - handle pop out window close better remove stuff in memory when close and reopen it clean
 # - avoid using self almost everywhere
-# - lcdproc to go toward embedded project and encapsulate tkradio from tk. Use ncurses lcdproc to test it on PC before testing LDC hardware, radiofe lecproc client using python library for lcdproc
+# - enter urls
+
+
+# - /etc/init.d/LCDd start
+# - go toward embedded project and encapsulate tkradio from tk. 
 # - embedded project, ui and network, clock, alarm, mono instead stereo, use web server and not fancy ui to do settings, bluetooth source select (test with parallel port PC, print case for it, elecx)
-#
+# - Web interface as additional gui
+# - more than 5 keys
 
 import os
 import shutil
@@ -76,6 +83,7 @@ if __name__ == "__main__":
     version='%(prog)s '+radioversion)
     ## command line option to enable debug messages
     parser.add_argument('-d', '--debug',   help="print debug messages",   action='store_true')  
+    parser.add_argument('-l', '--lcdproc',   help="add support for lcdproc",   action='store_true')  
 
     ## the command line arguments passed
     args = parser.parse_args()      
@@ -122,5 +130,5 @@ if __name__ == "__main__":
     logging.debug('Share dir is '+share_dir )   
      
  ## start the application
-    radio=tkradio(bundle_dir, share_dir, favicon, defaultpic, radioversion)
+    radio=tkradio(bundle_dir, share_dir, favicon, defaultpic, radioversion, lcdproc=args.lcdproc)
     radio.run()

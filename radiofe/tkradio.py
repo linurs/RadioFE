@@ -12,11 +12,12 @@ from tkinter import messagebox
 from tkinter import filedialog   
 from urllib.request import urlopen
 
+from radiofe.lcdradio import *
 from radiofe.radio import *
 
 try:
    from PIL import ImageTk, Image
-   PIL_imported=True  # Indication that PIL the python imageing library (pillow) is imported 
+   PIL_imported=True  # Indication that PIL the python imaging library (pillow) is imported 
 except:
    PIL_Imported=False 
    
@@ -28,13 +29,14 @@ pic_size=100
 
 class tkradio(radio):
 
-    def __init__(self, bundle_dir, share_dir, favicon, defaultpic, radioversion):
+    def __init__(self, bundle_dir, share_dir, favicon, defaultpic, radioversion, lcdproc=False):
         """The constructor for the GUI application"""   
         radio.__init__(self, bundle_dir, share_dir, favicon, defaultpic, radioversion)
 
         self.poppic_x=450
         self.poppic_y=450
         self.queue = queue.Queue()
+        self.radioversion=radioversion
         
         # setup the gui stuff
         self.window=Tk()
@@ -49,7 +51,7 @@ class tkradio(radio):
         # create the menus   
         self.menubar = Menu(self.window)
         
-        filemenu = Menu(self.menubar, tearoff=0)
+        filemenu = Menu(self.menubar, tearoff=0)            
         filemenu.add_command(label="Save", command=self.save)
         filemenu.add_command(label="Factory Reset", command=self.factory_reset)
         filemenu.add_separator()
@@ -122,12 +124,21 @@ class tkradio(radio):
         newsize = (pic_size, pic_size) 
         img=img.resize(newsize)
         self.window.picture = ImageTk.PhotoImage(img)
-        self.window.picturearea=Label(self.window,  image=self.window.picture)
+        self.window.picturearea=Label(self.window,  image=self.window.picture)           
         self.window.picturearea.grid( row=0,  column=3,  rowspan=4)
 
         textwidth=72
         self.text = Text(self.window, width=textwidth, height=20, highlightthickness=0, bd=0, bg='white', relief='sunken', padx=5, pady=5)
         self.text.grid(columnspan=4,  sticky= W)
+        
+        self.lcdproc=lcdproc
+        if self.lcdproc==True:
+            self.lcd=lcdproc_t(volume=0)
+            self.lcdproc=self.lcd.connected
+            if self.lcd.connected==True:
+                logging.debug("lcdproc connected")
+            else:       
+                logging.error("lcdproc connection refused")
      
     def popevent(self):
         """Destroy the pop up window"""
@@ -137,7 +148,6 @@ class tkradio(radio):
         
     def sampler(self):    
           logging.debug("sampler called")
-   #       self.popout(self.poppic_x, self.poppic_y) # to be replaced by pipe and just do the last pipe entry
           if self.queue.qsize():
               logging.debug("queue has data")
               while self.queue.empty()==False:
@@ -160,13 +170,10 @@ class tkradio(radio):
             self.poppic_y=event.height-2
             logging.debug("new size. Height "+str(self.poppic_y)+" Width "+str(self.poppic_x))
             self.queue.put((self.poppic_x, self.poppic_y))  
-            
-      #      self.popout(self.poppic_x, self.poppic_y)
-            self.window.after(250, self.sampler)
+            self.window.after(250, self.sampler) # do not update pics size immediately wait after window size is stable
         else:
             logging.debug("pop config event without size change")
      
-        
     def popoute(self):
          self.popout(self.poppic_x, self.poppic_y)
          
@@ -256,6 +263,8 @@ class tkradio(radio):
         logging.debug(xb)
         self.radio_popen.stdin.write(xb)    
         self.radio_popen.stdin.flush()
+        if self.lcdproc==True:
+            self.lcd.set_volume(int(v))
       
     def console(self):
          """Show and hide console"""        
@@ -284,7 +293,7 @@ class tkradio(radio):
         
     def run(self):
         """run"""
-        self.window.after(250, self.start) # start thread after mainloop to have thread in mainloop
+        self.window.after(250, self.start) # start thread after main-loop to have thread in main-loop
         self.window.mainloop()        
         
     def start(self):    
@@ -298,7 +307,7 @@ class tkradio(radio):
 
     def about(self):
          """Shows abbout messagebox"""
-         messagebox.showinfo("About","Internet Radio Front End from https://www.linurs.org \nVersion "+radioversion)       
+         messagebox.showinfo("About","Internet Radio Front End from https://www.linurs.org \nVersion "+self.radioversion)       
 
     def play(self):
         """Play the selected radio station"""
@@ -357,6 +366,8 @@ class tkradio(radio):
             if(t[0].strip()=="Name"):      
                 self.channel.set_name(t[1].strip())
                 self.radio_station_name_gui.set(self.channel.get_name())
+                if self.lcdproc==True:
+                    self.lcd.set_station(self.channel.get_name())
        # analyze icy      
             icy=s.split(":") 
             if(icy[0]=="ICY Info"):
@@ -369,6 +380,9 @@ class tkradio(radio):
                         logging.debug("Stream title :"+data[1])
                         self.channel.set_title(data[1].strip("'"))
                         self.stream_title_gui.set(self.channel.get_title())
+                        if self.lcdproc==True:
+                            self.lcd.set_song(self.channel.get_title())
+                        
                      if(data[0]=="StreamUrl"):
                         self.icy_url=element[11:len(element)].strip("\n")
                         logging.debug("Stream url :"+self.icy_url)
@@ -413,7 +427,7 @@ class tkradio(radio):
 
     def default_picture(self):   
         """Put the default picture into the radio window"""
-        img =Image.open(defaultpic)
+        img =Image.open(self.defaultpic)
         newsize = (pic_size, pic_size) 
         img=img.resize(newsize)
         self.window.picture = ImageTk.PhotoImage(img)
