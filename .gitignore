@@ -1,4 +1,4 @@
-
+*.pdf
 *.pyc
 *.pyo
 *.orig
@@ -6,6 +6,8 @@
 *.rej
 *.DS_Store
 RadioFE.e4p
+RadioFE.profile
+RadioFE.timings
 MANIFEST
 
 build/
